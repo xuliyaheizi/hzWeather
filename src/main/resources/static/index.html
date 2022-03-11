@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1">
+
+	<title>Weather Forecast</title>
+
+	<!-- Loading third party fonts -->
+	<link href="http://fonts.googleapis.com/css?family=Roboto:300,400,700|" rel="stylesheet" type="text/css">
+	<link href="fonts/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+	<!-- Loading main css file -->
+	<link rel="stylesheet" href="style.css">
+
+	<!--[if lt IE 9]>
+		<script src="js/ie-support/html5.js"></script>
+		<script src="js/ie-support/respond.js"></script>
+		<![endif]-->
+
+</head>
+
+<body>
+	<div id="weather" class="site-content">
+
+		<div class="site-header">
+			<div class="container">
+				<a href="index.html" class="branding">
+					<img src="images/logo.png" alt="" class="logo">
+					<div class="logo-type">
+						<h1 class="site-title">黑子_天气预报</h1>
+						<small class="site-description">Weather Forecast</small>
+					</div>
+				</a>
+
+				<!-- Default snippet for navigation -->
+				<div class="main-navigation">
+					<button type="button" class="menu-toggle"><i class="fa fa-bars"></i></button>
+					<ul class="menu">
+						<!-- <li class="menu-item"><a href="index.html">Home</a></li> -->
+						<!-- <li class="menu-item"><a href="news.html">News</a></li>
+						<li class="menu-item current-menu-item"><a href="live-cameras.html">Live cameras</a></li>
+						<li class="menu-item"><a href="photos.html">Photos</a></li>
+						<li class="menu-item"><a href="contact.html">Contact</a></li> -->
+					</ul> <!-- .menu -->
+				</div> <!-- .main-navigation -->
+
+				<div class="mobile-navigation"></div>
+
+			</div>
+		</div> <!-- .site-header -->
+
+		<div class="hero" data-bg-image="images/banner.png">
+			<div class="container">
+				<form action="#" class="find-location">
+					<input type="text" v-model="cityVal" placeholder="Find your city...">
+					<input type="button" value="Find" @click="queryCityInfo(cityVal)">
+				</form>
+
+			</div>
+		</div>
+		<!-- TODO -->
+		<div class="forecast-table">
+			<div class="container">
+				<div class="forecast-container">
+					<div class="today forecast">
+						<div class="forecast-header">
+							<div class="day">{{nowWeek}}</div>
+						</div> <!-- .forecast-header -->
+						<div class="forecast-content">
+							<div class="location">{{defaultCity}}</div>
+							<div class="degree">
+								<div class="num">{{nowDay.temperature}}<sup>o</sup>C</div>
+								<div class="forecast-icon">
+									<img :src="nowDay.weather_pic" alt="" width=90>
+								</div>
+							</div>
+							<span><img src="images/icon-umberella.png" alt="">{{nowDay.sd}}</span>
+							<span><img src="images/icon-wind.png" alt="">{{nowDay.wind_power}}</span>
+							<span><img src="images/icon-compass.png" alt="">{{nowDay.wind_direction}}</span>
+						</div>
+					</div>
+
+					<div class="forecast" v-for="(item,index) in futureWea.slice(1)">
+						<div class="forecast-header">
+							<div class="day">{{weeks[(wk+index+1)>=7?wk-6+index:wk+index+1]}}</div>
+						</div> <!-- .forecast-header -->
+						<div class="forecast-content">
+							<div class="forecast-icon">
+								<img :src="item.day_weather_pic" alt="" width=48>
+							</div>
+							<div class="degree">{{item.day_high_temperature}}</div>
+							<small>{{item.night_low_temperature}} <sup>o</sup>C</small><br>
+							<span><img src="images/icon-compass.png" alt="">{{item.day_wind_direction}}</span><br>
+							<span><img src="images/icon-wind.png" alt="">{{item.day_wind_power}}</span>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+		<footer class="site-footer">
+			<div class="container">
+				<p class="colophon">天气数据由阿里云提供. Designed by ZHULIN@2022. All rights reserved</p>
+			</div>
+		</footer> <!-- .site-footer -->
+	</div>
+
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/plugins.js"></script>
+	<script type="text/javascript" src="js/app.js"></script>
+	<script type="text/javascript" src="js/min/vue.min.js"></script>
+	<script type="text/javascript" src="js/min/axios.min.js"></script>
+
+</body>
+<script type="text/javascript">
+	const app_div = new Vue({
+		el: "#weather",
+		data: {
+			cityVal: '',
+			defaultCity:'衡阳',
+			nowDay: ' ',
+			nowWeek:' ',
+			wk: 0,
+			weeks:['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+			futureWea: []
+		},
+		methods: {
+			queryCityInfo(cityCode) {
+				const _this=this;
+				var params = new URLSearchParams();
+				params.append("city", cityCode);
+				axios.post("/hzWeather/getWeatherInfoByCity", params).then(function (cityInfo) {
+					cityInfo = cityInfo.data;
+					if (cityInfo.code == 200 && cityInfo.success == true) {
+						_this.defaultCity=cityInfo.data.city;
+						_this.cityVal="";
+						_this.nowDay = cityInfo.data.now;
+						_this.futureWea = cityInfo.data.dayWeathers;
+					}else{
+						alert("获取天气信息失败!!错误代码:"+cityInfo.msg);
+					}
+				})
+			},
+			initFace(){
+				return axios.get("/hzWeather/getWeatherInfo");
+			},
+			getNowTime(){
+				const _this=this;
+				let myDate=new Date();
+				let wek=myDate.getDay();
+				let week =_this.weeks[wek];
+				_this.wk=wek;
+				_this.nowWeek=week;
+			}
+		},
+		mounted: function () {
+			this.getNowTime();
+			this.queryCityInfo(this.defaultCity);
+			axios.all([this.initFace()])
+			.then(axios.spread(infos=>{
+				if (!confirm("是否允许获取位置信息!!--默认-衡阳-")){
+					return;
+				}
+				if (infos.data.code==200&&infos.data.success==true){
+					this.defaultCity=infos.data.data.city;
+					this.nowDay = infos.data.data.now;
+					this.futureWea = infos.data.data.dayWeathers;
+				}else{
+					alert("获取位置信息失败！！请手动输入城市");
+				}
+			}))
+		}
+	});
+</script>
+
+</html>

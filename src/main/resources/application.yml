@@ -1,0 +1,15 @@
+server:
+  port: 8001
+  servlet:
+    session.timeout: 60000
+    contextpath: /hzWeather
+
+#spring:
+#  datasource:
+#    url: jdbc:mysql://8.134.120.71:3306/weather?serverTimezone=UTC
+#    username: zhulin
+#    password: zhulin0804
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
